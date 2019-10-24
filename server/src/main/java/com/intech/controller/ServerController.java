@@ -33,6 +33,7 @@ public class ServerController {
     public ResponseEntity<?> saveUser(@RequestBody User user) {
         User save = userRepository.save(user);
         Long id = save.getId();
+        log.info("Save user with id: " + id);
         return new ResponseEntity<>("User saved with id: " + id, HttpStatus.OK);
     }
 
@@ -40,8 +41,10 @@ public class ServerController {
     public ResponseEntity<?> findUser(@RequestBody User login) {
         Optional<User> byLogin = userRepository.findByLogin(login.getLogin());
         if (byLogin.isPresent()) {
+            log.info("Found user: " + byLogin.get().getLogin());
             return new ResponseEntity<>(byLogin, HttpStatus.OK);
         }
+        log.warn("User not found");
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
@@ -49,15 +52,18 @@ public class ServerController {
     public ResponseEntity<?> getUserContent(@RequestBody User login) {
         Optional<User> byLogin = userRepository.findByLogin(login.getLogin());
         if (!byLogin.isPresent()) {
+            log.warn("User not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         User user = byLogin.get();
+        log.info("Found content for user: " + byLogin.get().getLogin());
         return new ResponseEntity<>(user.getContents(), HttpStatus.OK);
     }
 
     @GetMapping(value = "get_all_content", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllContent() {
         List<Content> all = contentRepository.findAllByOrderByIdAsc();
+        log.info("Found total user content: " + all.size());
         return new ResponseEntity<>(all, HttpStatus.OK);
     }
 
@@ -65,6 +71,7 @@ public class ServerController {
     public ResponseEntity<?> setUserContent(@RequestBody User user) {
         Optional<User> byId = userRepository.findByLogin(user.getLogin());
         if (!byId.isPresent()) {
+            log.warn("User not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         User user1 = byId.get();
@@ -72,6 +79,7 @@ public class ServerController {
             user1.getContents().add(contentRepository.findById(c.getId()).get());
         }
         userRepository.save(user1);
+        log.info("User content updated");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -79,6 +87,7 @@ public class ServerController {
     public ResponseEntity<?> deleteUserContent(@RequestBody User user) {
         Optional<User> byId = userRepository.findByLogin(user.getLogin());
         if (!byId.isPresent()) {
+            log.warn("User not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         User user1 = byId.get();
@@ -86,6 +95,7 @@ public class ServerController {
             user1.getContents().remove(contentRepository.findById(c.getId()).get());
         }
         userRepository.save(user1);
+        log.info("User content deleted");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
